@@ -1,0 +1,145 @@
+@startuml Class Diagram of .NET's Containers
+left to right direction
+hide empty members
+
+skinparam StereotypeCBackgroundColor<< struct >> Orange
+'skinparam groupInheritance 3
+
+package System.Collections.Generic {
+    interface IEnumerable<T>
+    interface IList<T>
+    interface IReadOnlyList<T>
+}
+
+package System {
+    abstract class Array
+    class "T[]"<T> extends Array implements IList, IReadOnlyList
+    class ArraySegment<T> << struct >> implements IList, IReadOnlyList
+    ArraySegment *-up- "T[]"
+    together {
+    class Span<T>  << struct >>
+    class ReadOnlySpan<T>  << struct >>
+    }
+    together {
+    class Memory<T>  << struct >>
+    class ReadOnlyMemory<T>  << struct >>
+    }
+    ReadOnlyMemory *-- String
+    ReadOnlyMemory *-- "T[]"
+    Memory *-- "T[]"
+
+    class String implements IEnumerable
+}
+together {
+class stackalloc as "stackalloc'ed region"
+class unsafePointer as "void*"
+
+Span *-- stackalloc
+Span *-- unsafePointer
+Span *-- Memory
+Span *-- "T[]"
+
+ReadOnlySpan *-- stackalloc
+ReadOnlySpan *-- unsafePointer
+ReadOnlySpan *-- ReadOnlyMemory
+ReadOnlySpan *-- String
+ReadOnlySpan *-- "T[]"
+}
+
+package System.Numerics {
+    class Vector<T> << struct >>
+}
+Vector *-- "T[]"
+
+package System.Collections.Generic {
+    interface IEnumerable<out T>
+    interface ICollection<T> extends  IEnumerable
+    interface IReadOnlyCollection<out T> extends IEnumerable
+    together {
+        interface IList<T> extends ICollection
+        interface IReadOnlyList<out T> extends IReadOnlyCollection
+        class List<T> implements IList, IReadOnlyList
+    }
+    together {
+        interface ISet<T> extends ICollection
+        interface IReadOnlySet<out T> extends IReadOnlyCollection
+        class HashSet<T> implements ISet, IReadOnlySet
+        class SortedSet<T> implements ISet, IReadOnlySet
+        class TreeSet<T> extends SortedSet
+    }
+    together {
+        interface IDictionary<TKey, TValue> extends ICollection
+        interface IReadOnlyDictionary<TKey, TValue> extends IReadOnlyCollection
+        class Dictionary<TKey, TValue> implements IDictionary, IReadOnlyDictionary
+        class SortedDictionary<TKey, TValue> implements IDictionary, IReadOnlyDictionary
+        class SortedList<TKey, TValue> implements IDictionary, IReadOnlyDictionary
+    }
+    class Stack<T> implements IReadOnlyCollection
+    class Queue<T> implements IReadOnlyCollection
+    class LinkedList<T> implements ICollection,IReadOnlyCollection
+
+    List -[hidden]-> LinkedList
+}
+
+package System.Linq {
+    interface IGrouping<out TKey, out TElement> extends IEnumerable
+    class Grouping<TKey, TElement> implements IList, IGrouping
+}
+ICollection -[hidden]right-> IGrouping
+
+package System.Collections.ObjectModel {
+    class Collection<T> implements IList, IReadOnlyList
+    class ReadOnlyCollection<T> implements IList, IReadOnlyList
+    ReadOnlyCollection *-- IList
+    class ObservableCollection<T> extends Collection
+}
+
+package System.Collections.Immutable {
+    together {
+    interface IImmutableList<T> extends IReadOnlyList
+    class ImmutableList<T> implements IList, IImmutableList
+    class "ImmutableList.Builder"<T> implements IList, IReadOnlyList
+    }
+    ImmutableList -[hidden]-> "ImmutableList.Builder"
+
+    together {
+    interface IImmutableDictionary<TKey, TValue> extends IReadOnlyDictionary
+    class ImmutableDictionary<TKey, TValue> implements IImmutableDictionary, IDictionary
+    class "ImmutableDictionary.Builder"<TKey, TValue> implements IDictionary, IReadOnlyDictionary
+    }
+    IImmutableDictionary -[hidden]-> ImmutableDictionary
+    ImmutableDictionary -[hidden]-> "ImmutableDictionary.Builder"
+    
+    together {
+    interface IImmutableArray
+    class ImmutableArray<T>  << struct >> implements IImmutableArray, IImmutableList
+
+    class "ImmutableArray.Builder"<T> implements IList, IReadOnlyList
+    }
+    IImmutableArray -[hidden]-> ImmutableArray
+    ImmutableArray -[hidden]-> "ImmutableArray.Builder"
+
+    interface IImmutableQueue<T> extends IEnumerable
+    class ImmutableQueue<T> implements IImmutableQueue
+
+    interface IImmutableStack<T> extends IEnumerable
+    class ImmutableStack<T> implements IImmutableStack
+
+    together {
+    interface IImmutableSet<T> extends IReadOnlyCollection
+    
+    class ImmutableSortedSet<T> implements IImmutableSet, ISet, IReadOnlySet, IList, IReadOnlyList
+    class "ImmutableSortedSet.Builder"<T> implements IReadOnlyCollection, ISet
+
+    class ImmutableHashSet<T> implements IImmutableSet, ISet, IReadOnlySet, IList, IReadOnlyList
+    class "ImmutableHashSet.Builder"<T> implements IReadOnlyCollection, ISet
+    }
+    ImmutableSortedSet -[hidden]-> "ImmutableSortedSet.Builder"
+    ImmutableHashSet -[hidden]-> "ImmutableHashSet.Builder"
+}
+
+' IReadOnlyDictionary -[hidden]down-> IImmutableDictionary
+' IReadOnlyList -[hidden]down-> IImmutableList
+' IReadOnlySet -[hidden]down-> IImmutableSet
+
+@enduml
