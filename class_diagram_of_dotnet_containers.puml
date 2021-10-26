@@ -17,12 +17,12 @@ package System {
     class ArraySegment<T> << struct >> implements IList, IReadOnlyList
     ArraySegment *-up- "T[]"
     together {
-    class Span<T>  << struct >>
-    class ReadOnlySpan<T>  << struct >>
+        class Span<T>  << struct >>
+        class ReadOnlySpan<T>  << struct >>
     }
     together {
-    class Memory<T>  << struct >>
-    class ReadOnlyMemory<T>  << struct >>
+        class Memory<T>  << struct >>
+        class ReadOnlyMemory<T>  << struct >>
     }
     ReadOnlyMemory *-- String
     ReadOnlyMemory *-- "T[]"
@@ -31,19 +31,19 @@ package System {
     class String implements IEnumerable
 }
 together {
-class stackalloc as "stackalloc'ed region"
-class unsafePointer as "void*"
+    class stackalloc as "stackalloc'ed region"
+    class unsafePointer as "void*"
 
-Span *-- stackalloc
-Span *-- unsafePointer
-Span *-- Memory
-Span *-- "T[]"
+    Span *-- stackalloc
+    Span *-- unsafePointer
+    Span -- Memory
+    Span *-- "T[]"
 
-ReadOnlySpan *-- stackalloc
-ReadOnlySpan *-- unsafePointer
-ReadOnlySpan *-- ReadOnlyMemory
-ReadOnlySpan *-- String
-ReadOnlySpan *-- "T[]"
+    ReadOnlySpan *-- stackalloc
+    ReadOnlySpan *-- unsafePointer
+    ReadOnlySpan -- ReadOnlyMemory
+    ReadOnlySpan *-- String
+    ReadOnlySpan *-- "T[]"
 }
 
 package System.Numerics {
@@ -95,26 +95,66 @@ package System.Collections.ObjectModel {
 }
 
 package System.Collections.Immutable {
+    <> connector_IReadOnlyCollection
+    IReadOnlyCollection -down- "IReadOnlyCollection" connector_IReadOnlyCollection
+
+    <> connector_IList
+    IList -down- "IList" connector_IList
+
+    <> connector_IReadOnlyList
+    IReadOnlyList -down- "IReadOnlyList" connector_IReadOnlyList
+
+    <> connector_ISet
+    ISet -down- "ISet" connector_ISet
+
+    <> connector_IReadOnlySet
+    IReadOnlySet -down- "IReadOnlySet" connector_IReadOnlySet
+
+    <> connector_IDictionary
+    IDictionary -down- "IDictionary" connector_IDictionary
+
+    <> connector_IReadOnlyDictionary
+    IReadOnlyDictionary -down- "IReadOnlyDictionary" connector_IReadOnlyDictionary
+
+    connector_IReadOnlyCollection -[hidden]down- connector_IReadOnlyList
+    connector_IReadOnlyList -[hidden]left- connector_IList
+    connector_IList -[hidden]left- connector_ISet
+    connector_ISet -[hidden]left- connector_IReadOnlyDictionary
+    connector_IReadOnlyDictionary -[hidden]left- connector_IDictionary
+    connector_IDictionary -[hidden]left- connector_IReadOnlySet
+
     together {
-    interface IImmutableList<T> extends IReadOnlyList
-    class ImmutableList<T> implements IList, IImmutableList
-    class "ImmutableList.Builder"<T> implements IList, IReadOnlyList
+        interface IImmutableList<T> extends connector_IReadOnlyList
+        class ImmutableList<T> implements connector_IList, IImmutableList
+        class "ImmutableList.Builder"<T> implements connector_IList, connector_IReadOnlyList
     }
     ImmutableList -[hidden]-> "ImmutableList.Builder"
 
     together {
-    interface IImmutableDictionary<TKey, TValue> extends IReadOnlyDictionary
-    class ImmutableDictionary<TKey, TValue> implements IImmutableDictionary, IDictionary
-    class "ImmutableDictionary.Builder"<TKey, TValue> implements IDictionary, IReadOnlyDictionary
+        interface IImmutableSet<T> extends connector_IReadOnlyCollection
+
+        class ImmutableSortedSet<T> implements IImmutableSet, connector_ISet, connector_IReadOnlySet, connector_IList, connector_IReadOnlyList
+        class "ImmutableSortedSet.Builder"<T> implements connector_IReadOnlyCollection, connector_ISet
+
+        class ImmutableHashSet<T> implements IImmutableSet, connector_ISet, connector_IReadOnlySet, connector_IList, connector_IReadOnlyList
+        class "ImmutableHashSet.Builder"<T> implements connector_IReadOnlyCollection, connector_ISet
+    }
+    ImmutableSortedSet -[hidden]-> "ImmutableSortedSet.Builder"
+    ImmutableHashSet -[hidden]-> "ImmutableHashSet.Builder"
+
+    together {
+        interface IImmutableDictionary<TKey, TValue> extends connector_IReadOnlyDictionary
+        class ImmutableDictionary<TKey, TValue> implements IImmutableDictionary, connector_IDictionary
+        class "ImmutableDictionary.Builder"<TKey, TValue> implements connector_IDictionary, connector_IReadOnlyDictionary
     }
     IImmutableDictionary -[hidden]-> ImmutableDictionary
     ImmutableDictionary -[hidden]-> "ImmutableDictionary.Builder"
-    
-    together {
-    interface IImmutableArray
-    class ImmutableArray<T>  << struct >> implements IImmutableArray, IImmutableList
 
-    class "ImmutableArray.Builder"<T> implements IList, IReadOnlyList
+    together {
+        interface IImmutableArray
+        class ImmutableArray<T>  << struct >> implements IImmutableArray, IImmutableList
+
+        class "ImmutableArray.Builder"<T> implements connector_IList, connector_IReadOnlyList
     }
     IImmutableArray -[hidden]-> ImmutableArray
     ImmutableArray -[hidden]-> "ImmutableArray.Builder"
@@ -125,18 +165,9 @@ package System.Collections.Immutable {
     interface IImmutableStack<T> extends IEnumerable
     class ImmutableStack<T> implements IImmutableStack
 
-    together {
-    interface IImmutableSet<T> extends IReadOnlyCollection
-    
-    class ImmutableSortedSet<T> implements IImmutableSet, ISet, IReadOnlySet, IList, IReadOnlyList
-    class "ImmutableSortedSet.Builder"<T> implements IReadOnlyCollection, ISet
-
-    class ImmutableHashSet<T> implements IImmutableSet, ISet, IReadOnlySet, IList, IReadOnlyList
-    class "ImmutableHashSet.Builder"<T> implements IReadOnlyCollection, ISet
-    }
-    ImmutableSortedSet -[hidden]-> "ImmutableSortedSet.Builder"
-    ImmutableHashSet -[hidden]-> "ImmutableHashSet.Builder"
 }
+
+' System.Collections.Generic -[hidden]- System.Collections.Immutable
 
 ' IReadOnlyDictionary -[hidden]down-> IImmutableDictionary
 ' IReadOnlyList -[hidden]down-> IImmutableList
